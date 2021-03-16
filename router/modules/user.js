@@ -9,6 +9,7 @@ const utils =  require('../../utils/index.js');
 const Comment = require('../../entity/comment/comment.js');
 const Information = require('../../entity/information/information.js')
 const ArtHistory = require('../../entity/user/artHistory.js')
+const userGrowHistory = require('../../entity/user/userGrowHistory.js');
 
 module.exports = router;
 
@@ -492,6 +493,12 @@ router.post('/user/follow', function(req, res, next) {
 			}, { 
 				$push: { fansIds: req.body.uId },
 			})
+			// 解除拉黑
+			await UserDetail.update({
+				uId: req.body.uId
+			}, { 
+				$pull: { hateIds: req.body.tId },
+			})
 		}
 		
 		// 产生information
@@ -525,7 +532,77 @@ router.post('/user/follow', function(req, res, next) {
 		console.log(err)
 		next({
 			status: 200,
-			data: 'getLikes faild'
+			data: 'Like faild'
 		})
 	})
+})
+
+// hate
+router.post('/user/hate', function(req, res, next) {
+	console.log('拉黑操作')
+	
+	UserDetail.findOne({
+		uId: req.body.uId
+	}).then(async (data) => {
+		// 设置userLike
+		let action = 0;
+		if(data.hateIds.find((item) => {
+			return item == req.body.tId
+		})) {
+			// 存在
+			action = -1
+			await UserDetail.update({
+				uId: req.body.uId
+			}, { 
+				$pull: { hateIds: req.body.tId },
+			})
+		} else {
+			// 不存在
+			action = 1
+			await UserDetail.update({
+				uId: req.body.uId
+			}, { 
+				$push: { hateIds: req.body.tId },
+			})
+			// 解除关注
+			await UserDetail.update({
+				uId: req.body.uId
+			}, { 
+				$pull: { followIds: req.body.tId },
+			})
+		}
+		
+		var ans = {
+			code: 20000,
+			data: action,
+		}
+		res.status(200).json(ans);
+	}, (err) => {
+		console.log(err)
+		next({
+			status: 200,
+			data: 'hate faild'
+		})
+	})
+})
+// getUserGrowHistor
+router.post('/user/getUserGrowHistory', function(req, res, next) {
+	console.log('查询成就值历史')
+	
+	userGrowHistory.findOne({
+		uId: req.body.uId
+	}).then((data) => {
+		var ans = {
+			code: 20000,
+			data: data.history,
+		}
+		res.status(200).json(ans);
+	}, (err) => {
+		console.log(err)
+		next({
+			status: 200,
+			data: '成就值查询失败'
+		})
+	})
+	
 })

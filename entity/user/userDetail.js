@@ -74,6 +74,9 @@ const UserDetailSchema = Schema({
 	followIds: [{
 		type: Number,
 	}],
+	hateIds: [{
+		type: Number,
+	}],
 	fansIds: [{
 		type: Number,
 	}],

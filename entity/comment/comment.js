@@ -6,6 +6,10 @@ const autoIncrement = require('mongoose-auto-increment-fix');
 autoIncrement.initialize(connectedMongoose);
 
 const CommentSchema = Schema({
+	anonymous: {
+		type: Boolean,
+		default: false,
+	},
 	id: {
 		type: Number,
 		required: true,

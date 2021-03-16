@@ -124,6 +124,19 @@ router.post('/talk/submitTalk', async function(req, res, next) {
 		});
 		return;
 	}
+	let refused = false;
+	
+	//判断拉黑
+	await UserDetail.findOne({
+		uId: req.body.tId,
+	}).then((data) => {
+		if(data.hateIds.find((item, i) => {
+			return item == req.body.uId;
+		})) {
+			refused = true;
+		}
+	})
+	
 	await Talk.update({
 		uId: req.body.uId,
 		tId: req.body.tId,
@@ -132,6 +145,7 @@ router.post('/talk/submitTalk', async function(req, res, next) {
 			uId: req.body.uId,
 			content: req.body.content,
 			date: new Date(),
+			refused: refused,
 		} },
 		$set: {
 			lastMessage: req.body.content,
@@ -140,6 +154,16 @@ router.post('/talk/submitTalk', async function(req, res, next) {
 			readto: 1
 		}
 	})
+	
+	if(refused) {
+		let ans = {
+			code: 20000,
+			data: true,
+		}
+		res.status(200).json(ans);
+		return;
+	}
+	
 	//对方可能把对话删了
 	await Talk.findOne({
 		tId: req.body.uId,
@@ -168,6 +192,8 @@ router.post('/talk/submitTalk', async function(req, res, next) {
 			lastMessage: req.body.content,
 		},
 	})
+	//产生主菜单的小红点
+	await utils.newMessage(req.body.tId, true);
 	
 	if(socketSet[req.body.tId]) {
 		if(socketSet[req.body.tId].readyState == 1) {
@@ -183,7 +209,7 @@ router.post('/talk/submitTalk', async function(req, res, next) {
 	
 	let ans = {
 		code: 20000,
-		data: '',
+		data: false,
 	}
 	res.status(200).json(ans);
 })

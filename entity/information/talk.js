@@ -17,6 +17,7 @@ const TalkSchema = Schema({
 		 uId
 		 date
 		 content
+		 refused
 		 */
 	}],
 	lastMessage: {

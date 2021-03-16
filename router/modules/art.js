@@ -67,7 +67,7 @@ router.post('/art/getBlinks', async function(req, res, next) {
 				date: item.date,
 			};
 		}))
-				
+		arr.reverse()
 		var ans = {
 			code: 20000,
 			data: arr,
